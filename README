@@ -1,0 +1,171 @@
+To install:
+
+  ruby install.rb config
+  ruby install.rb setup
+  ruby install.rb install
+
+
+=begin
+
+==class SuperHash
+
+The Ruby inheritance system is a powerful way to organize methods and constants
+in a hierarchy of classes and modules. However, it does not provide an easy way
+to organize class attributes with inherited values in such a hierarchy. There is no inheritance mechanism that combines:
+
+1. propagation of values to descendant classes;
+
+2. overriding of values by a subclass; and
+
+3. mutability.
+
+The closest approximations in Ruby are class variables, class instance variables, and constants.
+
+A class variable ((({@@var}))) is stored in the base class in which it was
+defined. When its value is changed by a subclass, the change propagates to all
+subclasses of the base class. The value cannot be overridden just for that
+subclass and its descendants. This satisfies 1 and 3, but not 2.
+
+A class instance variable ((({@var}))) can take on a different value in each
+subclass, but there is no inheritance mechanism. Its value is privately
+accessible by its owner (though it may be exposed by methods). However, the value does not propagate to subclasses. This satisfies 2 and 3, but not 1.
+
+A constant is inherited and can take on different values in subclasses. However it cannot be changed and is always public. This satisfies 1 and 2, but not 3.
+
+(({SuperHash})) solves this class attribute problem and in addition is a
+general mechanism for defining attribute inheritance structures among objects
+of any type, not just classes. An example of the former is (({StateObject})),
+in (({examples/state-object.rb})). An example of the latter is
+(({AttributedNode})), in (({examples/attributed-node.rb})).
+
+A superhash is simply a hash bundled with a list of parents, which can be
+hashes or other hash-like objects. For all lookup methods, like (({[]})),
+(({each})), (({size})), and so on, the superhash behaves as if the parent hash
+entries were included in it. The inheritance search is depth-first, and in the
+same order as the parents list.
+
+Destructive methods, such as (({[]=})) and (({delete})), do not affect the
+parent (however, see (({rehash})) below), but attempt to emulate the expected
+effect by changing the superhash itself. Operations on a parent are immdiately
+reflected in the child; the parent's data is referenced, not copied, by the
+child.
+
+The equality semantics of (({SuperHash})) is the same as that of (({Hash})).
+The (({==})) method returns true if and only if the receiver and the argument
+have the same (in the sense of (({==}))) key-value pairs. The (({eql?}))
+method is inherited from (({Object})). Naturally, (({SuperHash})) includes the
+(({Enumerable})) module.
+
+Note that (({SuperHash})) is not very efficient. Because (({SuperHash})) is
+dynamic and flexible, even an operation as simple as (({size})) requires
+sending (({size})) messages to the parents. Also, the current implementation
+emphasizes simplicity over speed. For instance, (({each})) requires
+constructing the set of all keys, which requires collecting key sets for
+parents, and then taking their union.
+
+===class method
+
+---SuperHash.new parents = [], default = nil
+
+The (({parents})) argument can be an enumerable collection of hash-like
+objects, or a single hash-like object, or [] or nil. The hash-like objects must
+support (({find})), (({collect})), (({keys})), (({key?})), and (({[]})).
+
+The precedence order of parents is the same as their order in the (({parents}))
+array. In other words, the first parent in the list overrides later ones, and
+so on. Inheritance is by depth first.
+
+If the (({default})) argument is specified, it affects the (({SuperHash})) just
+like the (({default})) argument in the (({Hash})) constructor. The default
+behavior of the child replaces the default behaviors of the parents.
+
+===overridden instance methods
+
+The SuperHash instance methods provide a hash-like interface. Hash methods which
+need special explanation are documented below.
+
+---SuperHash#clear
+
+The implementation of (({clear})) is to simply call (({delete_if {true}})).
+
+---SuperHash#delete(key)
+---SuperHash#delete(key) { |key| block }
+---SuperHash#delete_if { |key, value| block }
+
+If the key is inherited, these methods simply associate the default value to
+the key in the (({SuperHash})). Note that if the default is changed after the
+deletion, the key-value pair is not updated to reflect the change--the value
+will still be the old default.
+
+---SuperHash#empty?
+---SuperHash#size
+
+Note that (({superhash.clear.empty?})) will not return (({true})) if there are
+inherited keys. The (({SuperHash})) needs to remember which parent keys have
+been deleted, and this is not easily distinguishable from the case in which
+those keys have been explicitly associated with (({nil})) (or the default
+value). Similar remarks apply to (({size})).
+
+---SuperHash#invert
+---SuperHash#to_hash
+
+Returns a (({Hash})), in the first case with inverted key-value pairs, in the
+second case with the same key-value pairs, as the receiver.
+
+---SuperHash#rehash
+
+Rehashes the receiver's (({own})) hash and rehashes all parents (if they
+respond to (({rehash}))). Note that this is the only (({SuperHash})) method
+that modifies the parent objects.
+
+---SuperHash#replace(hash)
+
+Replaces the receiver's (({own})) hash with the argument, and replaces the
+receiver's parent array with the empty array.
+
+---SuperHash#shift
+
+As long as the (({own})) hash has entries, shifts them out and returns them.
+Raises (({ParentImmutableError})) if the receiver's (({own})) hash is empty.
+
+===new instance methods
+
+(({SuperHash})) defines some instance methods that are not available in
+(({Hash})).
+
+---SuperHash#inherits_key? k
+
+Returns (({true})) if and only if (({k})) is a key in a parent but not in the
+receiver's (({own})) hash.
+
+---SuperHash#own
+
+Returns the hash of key-value pairs that belong to the superhash and are not
+inherited.
+
+---SuperHash#own_keys
+
+Returns the array of keys in the (({own})) hash.
+
+---SuperHash#owns_key? k
+
+Returns (({true})) if and only if (({k})) is a key in the (({own})) hash.
+
+==version
+
+SuperHash 0.3
+
+The current version of this software can be found at 
+((<"http://redshift.sourceforge.net/superhash
+"|URL:http://redshift.sourceforge.net/superhash>)).
+
+==license
+This software is distributed under the Ruby license.
+See ((<"http://www.ruby-lang.org"|URL:http://www.ruby-lang.org>)).
+
+==author
+Joel VanderWerf,
+((<vjoel@users.sourceforge.net|URL:mailto:vjoel@users.sourceforge.net>))
+
+=end
+

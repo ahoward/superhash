@@ -1,0 +1,9 @@
+superhash 0.3
+  - Fixed broken #index.
+  - Updated for ruby-1.8 and ruby-1.9.
+
+superhash 0.2
+  - Updated for ruby-1.7.3.
+
+superhash 0.1
+  - First public release.
