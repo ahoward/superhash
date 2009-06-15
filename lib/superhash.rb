@@ -169,6 +169,7 @@ class SuperHash
   
   def initialize parents = [], default = nil
     @hash = Hash.new default
+    @parents = Array(parents).flatten
     if parents == nil
       @parents = []
     elsif parents.respond_to? :key?
